@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-4.2.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop-4.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+	<!-- 引入属性文件 -->
+	<!-- <context:property-placeholder location="classpath*:*.properties" /> -->
+
+	<!-- 算法和密钥 -->
+	<!-- 密钥可明文指定，也可设置property为 passwordEnvName的属性，该属性为环境变量，将密钥设置为环境变量，启动服务，然后删除环境变量。 -->
+	<bean id="environmentVariablesConfiguration" class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+		<property name="algorithm" value="PBEWithMD5AndDES" />
+		<property name="passwordEnvName" value="${passwordEnvName}" /><!--环境变量方式-->
+	</bean>
+	<!-- jasypt提供的PropertyPlaceholder类，继承自Spring的PropertyPlaceholderConfigurer -->
+	<bean id="configurationEncryptor" class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+		<property name="config" ref="environmentVariablesConfiguration" />
+	</bean>
+
+	<!-- 外部属性文件配置 -->
+	<bean id="propertyConfigurer" class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+		<constructor-arg ref="configurationEncryptor" />
+		<property name="locations">
+			<list>
+				<value>classpath:database.properties</value>
+				<value>classpath:system.properties</value>
+			</list>
+		</property>
+	</bean>
+
+
+	<!-- 自动扫描(自动注入) -->
+	<context:component-scan base-package="com.tceasy">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<context:spring-configured />
+
+	<!-- 配置任务线性池 -->
+	<task:executor id="executor" pool-size="3" />
+	<task:scheduler id="scheduler" pool-size="3" />
+	<!-- 启用annotation方式 -->
+	<task:annotation-driven scheduler="scheduler"  executor="executor" />
+
+
+	<aop:aspectj-autoproxy proxy-target-class="true" expose-proxy="true" />
+
+</beans>

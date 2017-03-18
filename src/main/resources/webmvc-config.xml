@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+	   http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+
+	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+
+	   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd"
+	   default-autowire="byName">
+	<!-- 文件上传    董吉星-->
+	<!-- SpringMVC上传文件时，需要配置MultipartResolver处理器 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8"/>
+		<!-- 指定所上传文件的总大小不能超过200KB。注意maxUploadSize属性的限制不是针对单个文件，而是所有文件的容量之和 -->
+		<property name="maxUploadSize" value="200000000000"/>
+	</bean>
+
+	<!-- SpringMVC在超出上传文件限制时，会抛出异常-->
+	<!-- 该异常是SpringMVC在检查上传的文件信息时抛出来的，而且此时还没有进入到Controller方法中 -->
+	<bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionMappings">
+			<props>
+				<!-- 遇到异常时，自动跳转到uploadError.jsp页面 -->
+				<prop key="org.springframework.web.multipart.MaxUploadSizeExceededException">uploadError</prop>
+			</props>
+		</property>
+	</bean>
+
+
+	<!--<bean name="casAuthenticationFilter" class="org.jasig.cas.client.authentication.AuthenticationFilter"
+		  p:casServerLoginUrl="https://localhost:8080/cas/login" p:renew="false"
+		  p:gateway="false" p:serverName="http://localhost:8082/app2" >
+
+	</bean>
+	<bean name="casTicketValidationFilter"
+		  class="org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter"
+		  p:serverName="http://localhost:8082/app2" p:redirectAfterValidation="true">
+		<property name="ticketValidator">
+			<bean class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator">
+				&lt;!&ndash; 对应于casServerUrlPrefix &ndash;&gt;
+				<constructor-arg index="0" value="https://localhost:8080/cas" />
+			</bean>
+		</property>
+	</bean>
+	<bean id="casHttpServletRequestWrapperFilter" class="org.jasig.cas.client.util.HttpServletRequestWrapperFilter"/>
+	<bean id="casAssertionThreadLocalFilter" class="org.jasig.cas.client.util.AssertionThreadLocalFilter"/>
+
+-->
+
+	<!-- 自动扫描且只扫描@Controller -->
+	<context:component-scan base-package="com.tceasy.sample.controller">
+	</context:component-scan>
+
+	<mvc:annotation-driven/>
+
+	<!-- 将无法mapping到Controller的path交给default servlet handler处理 -->
+	<mvc:default-servlet-handler/>
+
+	<!-- 定义JSP文件的位置 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+				  value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/pages/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+
+	<aop:aspectj-autoproxy/>
+</beans>
